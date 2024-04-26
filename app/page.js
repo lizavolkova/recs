@@ -1,113 +1,182 @@
+"use client"
 import Image from "next/image";
-
+import React, { useState } from 'react';
 export default function Home() {
+  const urls = [
+      'https://www.seriouseats.com/mushroom-pasta-creamy',
+      'https://www.seriouseats.com/double-bean-mazemen-broth-less-ramen-with-savory-beans',
+      'https://www.seriouseats.com/lamb-biryani',
+      'https://www.seriouseats.com/roasted-garlic-and-parmesan-rind-soup-5184259',
+      'https://www.justonecookbook.com/oyakodon/',
+      'https://natashaskitchen.com/classic-russian-borscht-recipe/',
+      'https://tasty.co/recipe/3-ingredient-peanut-butter-cookies',
+      'https://www.eatingwell.com/recipe/277767/falafel-tabbouleh-bowls-with-tzatziki',
+      'https://tasty.co/recipe/protein-packed-buddha-bowl',
+      'https://adventuresincooking.com/pumpkin-pie/',
+      'https://www.halfbakedharvest.com/baked-crunchy-buffalo-chicken',
+      'https://cooking.nytimes.com/recipes/1020631-thai-inspired-chicken-meatball-soup',
+      'https://thewoksoflife.com/moo-shu-chicken',
+      'https://www.themediterraneandish.com/kuku-sabzi-persian-baked-omelet/',
+      'https://www.pickuplimes.com/recipe/chickpea-omelette-sandwich-33',
+      'https://www.loveandlemons.com/sesame-tofu-recipe/',
+      'https://www.pickuplimes.com/recipe/buffalo-chickpea-sandwich-1528',
+      'https://www.fitfoodieselma.com/2021/01/04/vegan-chocolate-strawberry-protein-bites/',
+      'https://rainbowplantlife.com/tofu-tikka-masala/',
+      'https://rainbowplantlife.com/mediterranean-lentil-and-grain-bowls/',
+      'https://www.foodandwine.com/recipes/al-pastor-fish-tacos',
+      'https://www.eatingwell.com/recipe/262836/egg-sandwiches-with-rosemary-tomato-feta/',
+      'https://honest-food.net/duck-pie-recipe/',
+      'https://www.pickuplimes.com/recipe/peanut-chili-oil-cucumber-salad-1572'
+  ]
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState([]);
+  const [rawIng, setRawIng] = useState([])
+  const [labels, setLabels] = useState({})
+    const [dishType, setDishType] = useState([])
+    const [url, setUrl] = useState(urls[0])
+    const [mainIngs, setMainIngs] = useState([])
+
+  const submitData = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const url = formData.get('url')
+    setLoading(true)
+    setLabels({})
+      setData([])
+      setDishType([])
+
+      const getScrapedData = await fetch('/api/parse', {
+        method: 'POST',
+        body: JSON.stringify(url)
+      })
+      const { dishType, healthLabels, ingredientsParsed, mainIngredients, ingredients } = await getScrapedData.json();
+
+    // const getScrapedData = await fetch('/api/scrape', {
+    //   method: 'POST',
+    //   body: JSON.stringify(url)
+    // })
+    // const ingredients = await getScrapedData.json();
+     setRawIng(ingredients)
+      setMainIngs(mainIngredients)
+    //
+    // const getNPLIngredients = await fetch('/api/nlp', {
+    //   method: 'POST',
+    //   body: JSON.stringify(ingredients)
+    // })
+    //
+    // const nplIngredients = await getNPLIngredients.json();
+     setData(ingredientsParsed)
+
+    // const getAIData = await fetch('/api/ai', {
+    //     method: 'POST',
+    //     body: JSON.stringify(ingredients.ingredients)
+    // })
+    // const aiDataJson = await getAIData.json()
+    setLabels(healthLabels)
+    setDishType(dishType)
+    setLoading(false)
+  };
+
+  console.log(rawIng)
+  const edamTest = async() => {
+      if (data) {
+          // const ingr = ["1 cup rice,", "10 oz chickpeas", "1-2 chickens"];
+          const ingr = data.map(ing => `${ing.qty} ${ing.unit[0]} ${ing.ingredientRaw}`)
+          console.log(ingr)
+
+          return await fetch('https://api.edamam.com/api/nutrition-details?app_id=4b0bf564&app_key=faf33a5efe52f8b83e1ed1771fa8e572', {
+               method: 'POST',
+               headers: {
+                   'accept': 'application/json',
+                   'Content-Type': 'application/json'
+               },
+               body: JSON.stringify({ingr})
+           });
+      }
+
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <main className="flex items-center justify-between p-24 flex-col">
+          <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+              <button onClick={edamTest}
+                      className="text-white end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Edam
+                  Test
+              </button>
+              <form onSubmit={submitData} className="relative w-1/2">
+                  <div className="relative mb-5">
+                      <input type="search" id="search"
+                             name="url"
+                             className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                             placeholder="Url"
+                             defaultValue={url}
+                             required/>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+                      <button type="submit"
+                              disabled={loading}
+                              className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                          <svg aria-hidden="true" role="status"
+                               className={`${loading ? 'visible' : 'invisible'} inline w-4 h-4 me-3 text-white animate-spin`}
+                               viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                                  fill="#E5E7EB"/>
+                              <path
+                                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                                  fill="currentColor"/>
+                          </svg>
+                          Submit
+                      </button>
+                  </div>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+                  <label htmlFor="countries" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select
+                      an option</label>
+                  <select
+                      onChange={e => setUrl(e.target.value)}
+                      id="countries"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                      {urls.map(url => <option value={url} key={url}>{url}</option>)}
+                  </select>
+              </form>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+
+          </div>
+
+          <div className="w-full py-5">
+              Recipe tags:
+              <div>
+                  {Object.keys(labels).filter(label => labels[label] === true).map(label => <span className="mr-5"
+                                                                                                  key={label}>{label} </span>)}
+              </div>
+          </div>
+
+          <div className="w-full py-5">
+              Dish Type:
+              <div>
+                  {dishType.map(dish => <span className="mr-5" key={dish}>{dish} </span>)}
+              </div>
+          </div>
+
+          <div className="w-full">
+              <ul>
+                  {data.map((ing, i) => {
+                      return (
+                          <li className={`mb-2 p-2 rounded-md ${ing.flag ? '!bg-red-950' : ''}`} key={i}>
+                              <div c>
+                                  <span className="font-bold">{ing.quantity}</span>
+                                  <span className="text-red-200 ml-1">{ing.unit}</span>
+                                  <span className="text-yellow-200 ml-1">{ing.ingredient}</span>
+                                  <span className="text-green-200 ml-2 font-bold">{mainIngs[i]}</span>
+                              </div>
+                              <div className="text-xs text-gray-400">{rawIng[i]}</div>
+                          </li>
+                      )
+                  })}
+              </ul>
+
+          </div>
+      </main>
   );
 }
